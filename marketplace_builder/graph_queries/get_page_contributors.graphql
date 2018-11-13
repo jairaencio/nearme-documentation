@@ -1,0 +1,15 @@
+query get_page_contributors($slug: String!) {
+ customizations (
+   name: "page_contributors"
+   properties: [
+     { name:"slug", value: $slug }
+   ]
+ )
+ {
+   results {
+     id
+     contributors: property(name: "contributors")
+     last_edit: property(name: "last_edit")
+   }
+ }
+}

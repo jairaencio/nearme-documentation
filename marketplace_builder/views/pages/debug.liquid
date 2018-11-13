@@ -1,0 +1,45 @@
+---
+slug: debug
+---
+{% assign href = "/how-platformos-works/about-platform-os" %}
+
+{% assign path = "marketplace_builder/views/pages" | append: href %}
+{% assign path = path | append: ".liquid" %}
+{% assign data = '{ "path": "' | append: path | append: '"}' | to_hash %}
+{% execute_query 'api_call', template: 'get_page_contributors_from_github', data: data %}
+
+{% assign response = g.api_call_send.response.body | to_hash %}
+{% if response.first.author != blank  %}
+  {% assign authors = response | map: "author" %}
+  {% assign logins = "" | split: "," %}
+  {% capture "contributors" %}
+    [
+      {% for author in authors %}
+        {% assign login = author.login %}
+          {% assign logins = logins | add_to_array: login %}
+          {
+            "login": "{{ author.login }}",
+            "id": "{{ author.id }}",
+            "avatar_url": "{{ author.avatar_url }}",
+            "url": "{{ author.url }}"
+          }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ]
+  {% endcapture %}
+
+  {% assign last_edit = response.first.commit.author.date %}
+
+  {% assign contributors = contributors | to_hash %}
+
+  {% query_graph "get_page_contributors", slug: context.location.href %}
+  {% assign page_contributors = g.customizations.results.last %}
+  {% for current_contributor in page_contributors.contributors %}
+  {% endfor %}
+
+  {% assign contributors = contributors | uniq | to_json %}
+  {% execute_query "create_page_contributors", slug: href, contributors: contributors, last_edit: last_edit %}
+  {{ g }}
+{% else %}
+  Missing contributors
+  {{ g }}
+{% endif %}
