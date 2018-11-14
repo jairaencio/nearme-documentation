@@ -2,22 +2,20 @@
 {% assign page_contributors = g.customizations.results.last %}
 
 {% if page_contributors != blank %}
-  <div class="contributors d-flex">
+  <div class="contributors d-flex" data-contributors>
     <p class="mb-0 d-flex align-items-center">
       <span>Last edit:</span>&nbsp; {{ page_contributors.last_edit | date: "%b %d, %Y" }}
     </p>
     <p class="mb-0 d-flex align-items-center">
-    <span>Contributors:</span>&nbsp;
-    {% assign c = page_contributors.contributors | to_hash %}
-    {% for contributor in c %}
-      <a href="https://github.com/lemingos" target="_blank">
-        <img src="{{ contributor.avatar_url }}" width="20" height="20" alt="{{ contributor.login }}">
-      </a>
-    {% endfor %}
+      <span>Contributors:</span>&nbsp;
+      {% assign c = page_contributors.contributors | to_hash %}
+      {% for contributor in c %}
+        <a href="https://github.com/lemingos" target="_blank">
+          <img src="{{ contributor.avatar_url }}" width="20" height="20" alt="{{ contributor.login }}">
+        </a>
+      {% endfor %}
     </p>
   </div>
 {% else %}
-  OK
   <div class="contributors d-flex" data-contributors></div>
-
 {% endif %}

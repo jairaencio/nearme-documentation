@@ -2,13 +2,13 @@
 slug: debug
 ---
 {% assign href = "/how-platformos-works/about-platform-os" %}
-
 {% assign path = "marketplace_builder/views/pages" | append: href %}
 {% assign path = path | append: ".liquid" %}
 {% assign data = '{ "path": "' | append: path | append: '"}' | to_hash %}
-{% execute_query 'api_call', template: 'get_page_contributors_from_github', data: data %}
 
-{% assign response = g.api_call_send.response.body | to_hash %}
+{% execute_query 'api_call', template: 'get_page_contributors_from_github', result_name: 'api', data: data %}
+{% assign response = api.api_call_send.response.body | to_hash %}
+
 {% if response.first.author != blank  %}
   {% assign authors = response | map: "author" %}
   {% assign logins = "" | split: "," %}
@@ -28,18 +28,32 @@ slug: debug
   {% endcapture %}
 
   {% assign last_edit = response.first.commit.author.date %}
-
   {% assign contributors = contributors | to_hash %}
 
-  {% query_graph "get_page_contributors", slug: context.location.href %}
-  {% assign page_contributors = g.customizations.results.last %}
-  {% for current_contributor in page_contributors.contributors %}
-  {% endfor %}
+  {% log contributors, type: "contributors" %}
 
-  {% assign contributors = contributors | uniq | to_json %}
-  {% execute_query "create_page_contributors", slug: href, contributors: contributors, last_edit: last_edit %}
+  {% query_graph "get_page_contributors", result_name: "pc", slug: href %}
+  {% assign page_contributors = pc.customizations.results.last %}
+
+  {% if page_contributors != blank %}
+    {% assign current_contributors = page_contributors.contributors | to_hash  %}
+    {% for current_contributor in current_contributors %}
+      {% log current_contributor, type: 'current-contributor' %}
+      {% assign contributors = contributors | add_to_array: current_contributor %}
+    {% endfor %}
+  {% endif %}
+
+  {% assign contributors = contributors | uniq | json %}
+  {% log contributors, type: "contributors2" %}
+
+  {% if page_contributors.id == blank %}
+    {% execute_query "create_page_contributors", slug: href, contributors: contributors, last_edit: last_edit %}
+  {% else %}
+    {% execute_query "update_page_contributors", id: page_contributors.id, slug: href, contributors: contributors, last_edit: last_edit %}
+  {% endif %}
   {{ g }}
 {% else %}
   Missing contributors
-  {{ g }}
 {% endif %}
+
+{% log "end of script \n" %}

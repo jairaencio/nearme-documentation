@@ -1,0 +1,16 @@
+---
+slug: debug2
+---
+{% assign href = "/how-platformos-works/about-platform-os" %}
+
+{% query_graph "get_page_contributors", result_name: "pc", slug: href %}
+{% assign page_contributors = pc.customizations.results.last %}
+{{ page_contributors.contributors }}
+
+{% assign current_contributors = page_contributors.contributors | to_hash  %}
+<br />
+<br />
+
+{% for dupa in current_contributors %}
+  {{ dupa }} <br/ ><br>
+{% endfor %}
